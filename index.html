@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Data Dosen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            margin-right: 10px;
+        }
+
+        input {
+            margin: 5px 10px 5px 0;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #17d68a;
+            color: rgb(255, 255, 255);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4557a0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .actions button {
+            margin-right: 5px;
+            background-color: #ff0000;
+            color: white;
+        }
+        
+        .actions button:hover {
+            background-color: #b30000;
+        }
+    </style>
+</head>
+<body>
+    <h1>CRUD Data Dosen</h1>
+
+    <h2>Tambah Dosen</h2>
+    <form id="add-dosen-form">
+        <label for="nama">Nama:</label>
+        <input type="text" id="nama" name="nama" required>
+        <label for="univ">Universitas:</label>
+        <input type="text" id="univ" name="univ" required>
+        <label for="jurusan">Jurusan:</label>
+        <input type="text" id="jurusan" name="jurusan" required>
+        <button type="button" onclick="addDosen()">Tambah</button>
+    </form>
+
+    <h2>Daftar Dosen</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Universitas</th>
+                <th>Jurusan</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="dosen-list">
+            <!-- Data akan diisi dengan JavaScript -->
+        </tbody>
+    </table>
+
+    <script>
+        const API_URL = '/dosen';
+
+        async function fetchDosen() {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            const dosenList = document.getElementById('dosen-list');
+            dosenList.innerHTML = data.map(dosen => `
+                <tr>
+                    <td>${dosen.dosen_id}</td>
+                    <td>${dosen.nama}</td>
+                    <td>${dosen.univ}</td>
+                    <td>${dosen.jurusan}</td>
+                    <td class="actions">
+                        <button onclick="deleteDosen(${dosen.dosen_id})">Hapus</button>
+                        <button onclick="editDosen(${dosen.dosen_id})">Edit</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function addDosen() {
+            const nama = document.getElementById('nama').value;
+            const univ = document.getElementById('univ').value;
+            const jurusan = document.getElementById('jurusan').value;
+
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nama, univ, jurusan })
+            });
+
+            document.getElementById('add-dosen-form').reset();
+            fetchDosen();
+        }
+
+        async function deleteDosen(id) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            fetchDosen();
+        }
+
+        function editDosen(id) {
+            const nama = prompt("Masukkan nama :");
+            const univ = prompt("Masukkan universitas baru:");
+            const jurusan = prompt("Masukkan jurusan baru:");
+            if (nama && univ && jurusan) {
+                updateDosen(id, { nama, univ, jurusan });
+            }
+        }
+
+        async function updateDosen(id, updatedData) {
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+            fetchDosen();
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchDosen);
+    </script>
+</body>
+</html>
